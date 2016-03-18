@@ -322,7 +322,7 @@ Ftp::Response Ftp::download(const std::string& remoteFile, const std::string& lo
 
 
 ////////////////////////////////////////////////////////////
-Ftp::Response Ftp::upload(const std::string& localFile, const std::string& remotePath, TransferMode mode)
+Ftp::Response Ftp::upload(const std::string& localFile, const std::string& remotePath, TransferMode mode, const bool append = false)
 {
     // Get the contents of the file to send
     std::ifstream file(localFile.c_str(), std::ios_base::binary);
@@ -345,8 +345,17 @@ Ftp::Response Ftp::upload(const std::string& localFile, const std::string& remot
     Response response = data.open(mode);
     if (response.isOk())
     {
-        // Tell the server to start the transfer
-        response = sendCommand("STOR", path + filename);
+        //Check if data should be appended at the end of the remote file
+        if(append)
+        {
+            // Tell the server to start the transfer (creates a new file if not exists or else append)
+            response = sendCommand("APPE", path + filename);
+        } else
+        {
+            // Tell the server to start the transfer (creates a new file if not exists or else overwrite)
+            response = sendCommand("STOR", path + filename)
+        }
+        
         if (response.isOk())
         {
             // Send the file data
